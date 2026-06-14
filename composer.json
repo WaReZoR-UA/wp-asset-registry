@@ -1,0 +1,37 @@
+{
+    "name": "warezor/wp-asset-registry",
+    "description": "Asset / Equipment Registry - a portfolio-grade WordPress plugin demonstrating custom tables, roles, a front-end grid, server-side PDF, and secure file access.",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "require": {
+        "php": ">=8.1"
+    },
+    "require-dev": {
+        "brain/monkey": "^2.7",
+        "phpunit/phpunit": "^10.5",
+        "wp-coding-standards/wpcs": "^3.3",
+        "phpcompatibility/phpcompatibility-wp": "^2.1",
+        "dealerdirect/phpcodesniffer-composer-installer": "^1.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "AssetRegistry\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "AssetRegistry\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        },
+        "sort-packages": true
+    },
+    "scripts": {
+        "lint": "phpcs",
+        "lint:fix": "phpcbf",
+        "test": "phpunit"
+    }
+}
