@@ -14,6 +14,12 @@ if ( ! defined( 'ABSPATH' ) ) {
     define( 'ABSPATH', sys_get_temp_dir() . '/' );
 }
 
+// WordPress core constant used as a $wpdb output type; the repository tests
+// reference it, so define it for the no-WordPress unit suite.
+if ( ! defined( 'ARRAY_A' ) ) {
+    define( 'ARRAY_A', 'ARRAY_A' );
+}
+
 // Minimal stand-in for the WordPress $wpdb object. Mockery can mock this
 // class to assert calls; tests that only read properties use it directly.
 if ( ! class_exists( 'wpdb' ) ) {
