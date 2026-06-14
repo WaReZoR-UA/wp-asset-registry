@@ -15,10 +15,8 @@
     <arg name="parallel" value="8"/>
 
     <config name="minimum_supported_wp_version" value="6.4"/>
-    <config name="testVersion" value="8.1-"/>
 
     <rule ref="WordPress"/>
-    <rule ref="PHPCompatibilityWP"/>
 
     <!--
         The plugin autoloads its classes with Composer PSR-4, so class files

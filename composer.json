@@ -10,7 +10,6 @@
         "brain/monkey": "^2.7",
         "phpunit/phpunit": "^10.5",
         "wp-coding-standards/wpcs": "^3.3",
-        "phpcompatibility/phpcompatibility-wp": "^2.1",
         "dealerdirect/phpcodesniffer-composer-installer": "^1.2"
     },
     "autoload": {
