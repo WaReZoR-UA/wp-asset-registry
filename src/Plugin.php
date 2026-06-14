@@ -10,7 +10,7 @@ declare( strict_types=1 );
 namespace AssetRegistry;
 
 /**
- * Plugin orchestrator. Holds the canonical version and wires runtime hooks.
+ * Plugin orchestrator. Holds the canonical version and boots the plugin.
  * Feature hooks (admin, REST, frontend, PDF, files) are wired in later phases.
  */
 final class Plugin {
