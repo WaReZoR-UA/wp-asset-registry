@@ -13,7 +13,7 @@ namespace AssetRegistry;
  * CRUD and list queries over the assets table. The SQL fragment builders
  * are pure so the WHERE/ORDER/LIMIT assembly is unit-testable without a DB.
  */
-final class AssetRepository {
+class AssetRepository {
 
 	/**
 	 * Columns that may appear in an ORDER BY clause.
