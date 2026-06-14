@@ -1,5 +1,7 @@
 <?php
 /**
+ * Custom table name and schema definition for the Asset Registry plugin.
+ *
  * @package AssetRegistry
  */
 
@@ -12,24 +14,31 @@ namespace AssetRegistry;
  */
 final class Schema {
 
-    /**
-     * Base table name, appended to the site table prefix.
-     */
-    public const TABLE = 'ar_assets';
+	/**
+	 * Base table name, appended to the site table prefix.
+	 */
+	public const TABLE = 'ar_assets';
 
-    /**
-     * Fully-qualified, prefixed table name.
-     */
-    public static function table_name( string $prefix ): string {
-        return $prefix . self::TABLE;
-    }
+	/**
+	 * Fully-qualified, prefixed table name.
+	 *
+	 * @param string $prefix Site table prefix (for example wp_).
+	 * @return string The prefixed table name.
+	 */
+	public static function table_name( string $prefix ): string {
+		return $prefix . self::TABLE;
+	}
 
-    /**
-     * CREATE TABLE statement formatted for dbDelta (two spaces after
-     * PRIMARY KEY, one column/key per line, KEY not INDEX).
-     */
-    public static function create_sql( string $table_name, string $charset_collate ): string {
-        return "CREATE TABLE {$table_name} (
+	/**
+	 * CREATE TABLE statement formatted for dbDelta (two spaces after
+	 * PRIMARY KEY, one column/key per line, KEY not INDEX).
+	 *
+	 * @param string $table_name      Fully-qualified, prefixed table name.
+	 * @param string $charset_collate Database charset and collation clause.
+	 * @return string The dbDelta-compatible CREATE TABLE statement.
+	 */
+	public static function create_sql( string $table_name, string $charset_collate ): string {
+		return "CREATE TABLE {$table_name} (
 \t\tid BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
 \t\tasset_tag VARCHAR(64) NOT NULL,
 \t\tname VARCHAR(191) NOT NULL,
@@ -48,5 +57,5 @@ final class Schema {
 \t\tKEY status (status),
 \t\tKEY category (category)
 \t) {$charset_collate};";
-    }
+	}
 }

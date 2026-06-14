@@ -1,5 +1,7 @@
 <?php
 /**
+ * Deactivation routine for the Asset Registry plugin.
+ *
  * @package AssetRegistry
  */
 
@@ -14,7 +16,10 @@ namespace AssetRegistry;
  */
 final class Deactivator {
 
-    public static function deactivate(): void {
-        flush_rewrite_rules();
-    }
+	/**
+	 * Flushes rewrite rules so the file route is cleared on deactivation.
+	 */
+	public static function deactivate(): void {
+		flush_rewrite_rules();
+	}
 }

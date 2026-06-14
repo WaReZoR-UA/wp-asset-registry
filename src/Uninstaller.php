@@ -1,5 +1,7 @@
 <?php
 /**
+ * Uninstall routine for the Asset Registry plugin.
+ *
  * @package AssetRegistry
  */
 
@@ -14,15 +16,20 @@ namespace AssetRegistry;
  */
 final class Uninstaller {
 
-    public static function uninstall( \wpdb $wpdb ): void {
-        Capabilities::remove_roles();
+	/**
+	 * Removes the custom roles, drops the custom table, and deletes the option.
+	 *
+	 * @param \wpdb $wpdb WordPress database access object.
+	 */
+	public static function uninstall( \wpdb $wpdb ): void {
+		Capabilities::remove_roles();
 
-        $table = Schema::table_name( $wpdb->prefix );
-        // Table identifiers cannot be bound as prepared parameters; the name
-        // is derived from the trusted site prefix plus a fixed constant.
-        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.DirectDatabaseQuery.NoCaching
-        $wpdb->query( "DROP TABLE IF EXISTS {$table}" );
+		$table = Schema::table_name( $wpdb->prefix );
+		// Table identifiers cannot be bound as prepared parameters; the name
+		// is derived from the trusted site prefix plus a fixed constant.
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+		$wpdb->query( "DROP TABLE IF EXISTS {$table}" );
 
-        delete_option( 'asset_registry_db_version' );
-    }
+		delete_option( 'asset_registry_db_version' );
+	}
 }

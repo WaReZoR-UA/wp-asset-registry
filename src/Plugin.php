@@ -1,5 +1,7 @@
 <?php
 /**
+ * Runtime orchestrator for the Asset Registry plugin.
+ *
  * @package AssetRegistry
  */
 
@@ -13,10 +15,13 @@ namespace AssetRegistry;
  */
 final class Plugin {
 
-    public const VERSION = '0.1.0';
+	public const VERSION = '0.1.0';
 
-    public static function init(): void {
-        load_plugin_textdomain( 'asset-registry' );
-        // Runtime hooks (admin, REST, frontend, PDF, files) are wired in later phases.
-    }
+	/**
+	 * Boots the plugin: loads translations and wires runtime hooks.
+	 */
+	public static function init(): void {
+		load_plugin_textdomain( 'asset-registry' );
+		// Runtime hooks (admin, REST, frontend, PDF, files) are wired in later phases.
+	}
 }

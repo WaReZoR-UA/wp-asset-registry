@@ -24,27 +24,27 @@ define( 'ASSET_REGISTRY_URL', plugin_dir_url( __FILE__ ) );
 
 $asset_registry_autoload = __DIR__ . '/vendor/autoload.php';
 if ( is_readable( $asset_registry_autoload ) ) {
-    require_once $asset_registry_autoload;
+	require_once $asset_registry_autoload;
 }
 
 register_activation_hook(
-    __FILE__,
-    static function (): void {
-        global $wpdb;
-        \AssetRegistry\Activator::activate( $wpdb );
-    }
+	__FILE__,
+	static function (): void {
+		global $wpdb;
+		\AssetRegistry\Activator::activate( $wpdb );
+	}
 );
 
 register_deactivation_hook(
-    __FILE__,
-    static function (): void {
-        \AssetRegistry\Deactivator::deactivate();
-    }
+	__FILE__,
+	static function (): void {
+		\AssetRegistry\Deactivator::deactivate();
+	}
 );
 
 add_action(
-    'plugins_loaded',
-    static function (): void {
-        \AssetRegistry\Plugin::init();
-    }
+	'plugins_loaded',
+	static function (): void {
+		\AssetRegistry\Plugin::init();
+	}
 );

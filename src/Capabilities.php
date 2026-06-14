@@ -1,5 +1,7 @@
 <?php
 /**
+ * Custom roles and capabilities for the Asset Registry plugin.
+ *
  * @package AssetRegistry
  */
 
