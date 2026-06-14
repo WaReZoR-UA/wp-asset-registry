@@ -5,10 +5,6 @@ Registry: custom database tables, role-based access control, a responsive
 front-end grid with filters and search, server-side PDF spec sheets, and
 secure authenticated attachments.
 
-This repository is built feature-by-feature. See
-`docs/plans/` for the implementation plans and
-`docs/specs/` for the design spec.
-
 ## Status
 
 Phase 1 (foundation & lifecycle) is in place: activation creates the custom

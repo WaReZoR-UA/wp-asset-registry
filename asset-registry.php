@@ -1,12 +1,12 @@
 <?php
 /**
  * Plugin Name:       Asset Registry
- * Plugin URI:        https://github.com/warezor/wp-asset-registry
+ * Plugin URI:        https://github.com/WaReZoR-UA/wp-asset-registry
  * Description:       Asset / Equipment Registry: custom tables, role-based access, a responsive front-end grid with filters and search, server-side PDF spec sheets, and secure authenticated attachments.
  * Version:           0.1.0
  * Requires at least: 6.4
  * Requires PHP:      8.1
- * Author:            warezor
+ * Author:            Volodymyr O.
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       asset-registry

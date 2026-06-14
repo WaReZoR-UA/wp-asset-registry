@@ -1,5 +1,5 @@
 {
-    "name": "warezor/wp-asset-registry",
+    "name": "warezor-ua/wp-asset-registry",
     "description": "Asset / Equipment Registry - a portfolio-grade WordPress plugin demonstrating custom tables, roles, a front-end grid, server-side PDF, and secure file access.",
     "type": "wordpress-plugin",
     "license": "GPL-2.0-or-later",
