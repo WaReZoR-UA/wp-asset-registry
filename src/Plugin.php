@@ -22,6 +22,12 @@ final class Plugin {
 	 */
 	public static function init(): void {
 		load_plugin_textdomain( 'asset-registry' );
-		// Runtime hooks (admin, REST, frontend, PDF, files) are wired in later phases.
+
+		if ( is_admin() ) {
+			$menu = new \AssetRegistry\Admin\AdminMenu();
+			add_action( 'admin_menu', array( $menu, 'register' ) );
+		}
+
+		// REST, frontend, PDF, and file hooks are wired in later phases.
 	}
 }
