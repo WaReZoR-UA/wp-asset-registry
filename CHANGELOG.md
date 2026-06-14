@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-06-14
+
+### Fixed
+- Unit-test autoloading on case-sensitive filesystems: the test directory case now matches its PSR-4 namespace, so the test matrix passes on Linux across PHP 8.1-8.4.
+
+### Changed
+- CI: updated the checkout action to v5 (Node 24).
+
 ## [0.1.0] - 2026-06-13
 
 ### Added
