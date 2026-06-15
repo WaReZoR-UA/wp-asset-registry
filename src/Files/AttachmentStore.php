@@ -46,10 +46,29 @@ class AttachmentStore {
 	/**
 	 * Absolute path to the protected directory, without a trailing slash.
 	 *
+	 * Defaults to a subdirectory of the uploads folder guarded by a deny-all
+	 * .htaccess. On servers that do not honour .htaccess (nginx, some
+	 * LiteSpeed setups), point this OUTSIDE the web root via the
+	 * ASSET_REGISTRY_PROTECTED_DIR constant or the filter below so the files
+	 * are never directly served.
+	 *
 	 * @return string The clean directory path.
 	 */
 	public function protected_dir(): string {
-		return trailingslashit( wp_upload_dir()['basedir'] ) . self::SUBDIR;
+		if ( defined( 'ASSET_REGISTRY_PROTECTED_DIR' ) && '' !== (string) ASSET_REGISTRY_PROTECTED_DIR ) {
+			$dir = (string) ASSET_REGISTRY_PROTECTED_DIR;
+		} else {
+			$dir = trailingslashit( wp_upload_dir()['basedir'] ) . self::SUBDIR;
+		}
+
+		/**
+		 * Filters the absolute path to the protected attachment directory.
+		 *
+		 * @param string $dir The protected directory path.
+		 */
+		$dir = (string) apply_filters( 'asset_registry_protected_dir', $dir );
+
+		return untrailingslashit( $dir );
 	}
 
 	/**

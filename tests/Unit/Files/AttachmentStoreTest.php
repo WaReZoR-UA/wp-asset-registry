@@ -23,7 +23,9 @@ final class AttachmentStoreTest extends UnitTestCase {
 			)
 		);
 		Functions\when( 'trailingslashit' )->alias( static fn ( $p ) => rtrim( $p, '/\\' ) . '/' );
+		Functions\when( 'untrailingslashit' )->alias( static fn ( $p ) => rtrim( $p, '/\\' ) );
 		Functions\when( 'sanitize_file_name' )->alias( static fn ( $n ) => preg_replace( '/[^A-Za-z0-9._-]/', '', $n ) );
+		Functions\when( 'apply_filters' )->alias( static fn ( $hook, $value ) => $value );
 	}
 
 	public function test_generated_path_is_inside_protected_directory(): void {
@@ -35,6 +37,18 @@ final class AttachmentStoreTest extends UnitTestCase {
 		$this->assertStringStartsWith( '/var/www/uploads/asset-registry-protected/', (string) $absolute );
 		$this->assertStringContainsString( '7', $relative );
 		$this->assertStringContainsString( 'abc123', $relative );
+	}
+
+	public function test_protected_dir_can_be_moved_outside_the_web_root_via_filter(): void {
+		Functions\when( 'apply_filters' )->alias( static fn ( $hook, $value ) => '/home/site/private/ar-protected/' );
+
+		$store = new AttachmentStore();
+
+		$this->assertSame( '/home/site/private/ar-protected', $store->protected_dir() );
+		$this->assertSame(
+			'/home/site/private/ar-protected/7-abc123-photo.png',
+			$store->resolve( '7-abc123-photo.png' )
+		);
 	}
 
 	public function test_resolve_rejects_directory_traversal(): void {
