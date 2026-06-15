@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-06-15
+
+### Fixed
+- Detail dialog download buttons (PDF and attachment) were not visible: the dialog renders outside the grid container, so the colour palette did not apply to it. The palette is now declared on the dialog scope as well.
+
 ## [1.0.0] - 2026-06-15
 
 ### Added

@@ -15,7 +15,7 @@ namespace AssetRegistry;
  */
 final class Plugin {
 
-	public const VERSION = '1.0.0';
+	public const VERSION = '1.0.1';
 
 	/**
 	 * Boots the plugin: loads translations and wires runtime hooks.
