@@ -154,7 +154,9 @@ final class FileController {
 		}
 
 		header( 'Content-Type: ' . $mime );
-		header( 'Content-Disposition: inline; filename="' . basename( $abs ) . '"' );
+		// Force a download (attachment) rather than rendering in the tab, to match
+		// the "Download attachment" action and behave predictably for any file type.
+		header( 'Content-Disposition: attachment; filename="' . basename( $abs ) . '"' );
 		header( 'Content-Length: ' . (string) filesize( $abs ) );
 
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_readfile, WordPress.Security.EscapeOutput.OutputNotEscaped -- verified-safe binary stream of a path resolved inside the protected store; escaping would corrupt the file.
