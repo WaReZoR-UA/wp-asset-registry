@@ -97,6 +97,8 @@ final class Shortcode {
 				'loading'       => __( 'Loading...', 'asset-registry' ),
 				'details'       => __( 'Details', 'asset-registry' ),
 				'restricted'    => __( 'Sign in to view full asset details.', 'asset-registry' ),
+				'downloadPdf'   => __( 'Download PDF', 'asset-registry' ),
+				'downloadFile'  => __( 'Download attachment', 'asset-registry' ),
 			),
 		);
 	}

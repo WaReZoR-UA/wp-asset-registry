@@ -13,6 +13,7 @@ use AssetRegistry\Asset;
 use AssetRegistry\AssetRepository;
 use AssetRegistry\Capabilities;
 use AssetRegistry\Category;
+use AssetRegistry\Files\AttachmentStore;
 use AssetRegistry\Sanitizer;
 use AssetRegistry\Status;
 
@@ -26,11 +27,15 @@ final class AssetForm {
 	public const NONCE_FIELD  = 'asset_registry_nonce';
 
 	/**
-	 * Stores the optional repository dependency.
+	 * Stores the optional dependencies.
 	 *
 	 * @param AssetRepository|null $repository Injected for testing; built lazily otherwise.
+	 * @param AttachmentStore|null $store      Injected for testing; built lazily otherwise.
 	 */
-	public function __construct( private ?AssetRepository $repository = null ) {}
+	public function __construct(
+		private ?AssetRepository $repository = null,
+		private ?AttachmentStore $store = null
+	) {}
 
 	/**
 	 * Resolves the repository, wiring the global $wpdb when none was injected.
@@ -43,6 +48,15 @@ final class AssetForm {
 			$this->repository = new AssetRepository( $wpdb );
 		}
 		return $this->repository;
+	}
+
+	/**
+	 * Resolves the attachment store, building a default instance when none was injected.
+	 *
+	 * @return AttachmentStore The protected-storage gateway.
+	 */
+	private function store(): AttachmentStore {
+		return $this->store ??= new AttachmentStore();
 	}
 
 	/**
@@ -59,13 +73,36 @@ final class AssetForm {
 	}
 
 	/**
+	 * Stores a freshly uploaded attachment for an asset, if one was supplied.
+	 * Testable seam that isolates the upload check and store call from handle().
+	 *
+	 * @param int                                 $asset_id Owning asset id.
+	 * @param array<string, array<string, mixed>> $files    Raw $_FILES-shaped array.
+	 * @return string|null The stored relative path, or null when no valid file was uploaded.
+	 */
+	public function process_upload( int $asset_id, array $files ): ?string {
+		if ( ! isset( $files['attachment'] ) ) {
+			return null;
+		}
+
+		$attachment = $files['attachment'];
+		$error      = (int) ( $attachment['error'] ?? UPLOAD_ERR_NO_FILE );
+		if ( UPLOAD_ERR_OK !== $error || empty( $attachment['size'] ) ) {
+			return null;
+		}
+
+		return $this->store()->store( $attachment, $asset_id );
+	}
+
+	/**
 	 * Sanitizes, validates and persists a submission.
 	 *
-	 * @param array<string, mixed> $raw   Untrusted request values.
-	 * @param string|null          $nonce Submitted nonce value.
+	 * @param array<string, mixed>                $raw   Untrusted request values.
+	 * @param string|null                         $nonce Submitted nonce value.
+	 * @param array<string, array<string, mixed>> $files Raw $_FILES-shaped array (optional).
 	 * @return array{saved: bool, id: int, error: string} The persistence outcome.
 	 */
-	public function handle( array $raw, ?string $nonce ): array {
+	public function handle( array $raw, ?string $nonce, array $files = array() ): array {
 		if ( ! $this->can_submit( $nonce ) ) {
 			return array(
 				'saved' => false,
@@ -96,18 +133,29 @@ final class AssetForm {
 
 		$asset = Asset::from_array( $clean );
 
-		// Attachment upload is handled by the file-store integration.
 		if ( $id > 0 ) {
 			$ok = $this->repository()->update( $id, $asset );
+			if ( ! $ok ) {
+				return array(
+					'saved' => false,
+					'id'    => $id,
+					'error' => 'save_failed',
+				);
+			}
+
+			$this->store_attachment( $id, $clean, $files );
+
 			return array(
-				'saved' => $ok,
+				'saved' => true,
 				'id'    => $id,
-				'error' => $ok ? '' : 'save_failed',
+				'error' => '',
 			);
 		}
 
 		$new_id = $this->repository()->insert( $asset );
 		if ( $new_id > 0 ) {
+			$this->store_attachment( $new_id, $clean, $files );
+
 			return array(
 				'saved' => true,
 				'id'    => $new_id,
@@ -120,6 +168,27 @@ final class AssetForm {
 			'id'    => 0,
 			'error' => 'save_failed',
 		);
+	}
+
+	/**
+	 * Persists an uploaded attachment's path onto an already-saved asset.
+	 * No-op when no valid file was uploaded, so the extra update only runs
+	 * when an attachment is present.
+	 *
+	 * @param int                                 $asset_id Owning asset id.
+	 * @param array<string, mixed>                $clean    Sanitized column values for the asset.
+	 * @param array<string, array<string, mixed>> $files    Raw $_FILES-shaped array.
+	 */
+	private function store_attachment( int $asset_id, array $clean, array $files ): void {
+		$relative = $this->process_upload( $asset_id, $files );
+		if ( null === $relative ) {
+			return;
+		}
+
+		$asset_with_path = Asset::from_array(
+			array_merge( $clean, array( 'attachment_path' => $relative ) )
+		);
+		$this->repository()->update( $asset_id, $asset_with_path );
 	}
 
 	/**
@@ -137,9 +206,9 @@ final class AssetForm {
 			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- reading the nonce token prior to verifying it.
 			$nonce = isset( $_POST[ self::NONCE_FIELD ] ) ? sanitize_text_field( wp_unslash( $_POST[ self::NONCE_FIELD ] ) ) : null;
 			if ( $this->can_submit( $nonce ) ) {
-				// $_POST is sanitized field-by-field inside Sanitizer::sanitize().
+				// $_POST is sanitized field-by-field inside Sanitizer::sanitize(); $_FILES is validated inside AttachmentStore::store().
 				// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified above via can_submit().
-				$result = $this->handle( wp_unslash( $_POST ), $nonce );
+				$result = $this->handle( wp_unslash( $_POST ), $nonce, isset( $_FILES ) ? $_FILES : array() );
 				if ( $result['saved'] ) {
 					echo '<div class="notice notice-success"><p>' . esc_html__( 'Asset saved.', 'asset-registry' ) . '</p></div>';
 					$this->render_fields();
@@ -191,18 +260,19 @@ final class AssetForm {
 			$values = $asset instanceof Asset ? $asset->to_array() : array();
 		}
 
-		$asset_tag     = (string) ( $values['asset_tag'] ?? '' );
-		$name          = (string) ( $values['name'] ?? '' );
-		$category      = (string) ( $values['category'] ?? '' );
-		$status        = (string) ( $values['status'] ?? Status::Active->value );
-		$location      = (string) ( $values['location'] ?? '' );
-		$assigned_to   = (string) ( $values['assigned_to'] ?? '' );
-		$purchase_date = (string) ( $values['purchase_date'] ?? '' );
-		$value         = isset( $values['value'] ) ? (string) $values['value'] : '';
-		$notes         = (string) ( $values['notes'] ?? '' );
+		$asset_tag       = (string) ( $values['asset_tag'] ?? '' );
+		$name            = (string) ( $values['name'] ?? '' );
+		$category        = (string) ( $values['category'] ?? '' );
+		$status          = (string) ( $values['status'] ?? Status::Active->value );
+		$location        = (string) ( $values['location'] ?? '' );
+		$assigned_to     = (string) ( $values['assigned_to'] ?? '' );
+		$purchase_date   = (string) ( $values['purchase_date'] ?? '' );
+		$value           = isset( $values['value'] ) ? (string) $values['value'] : '';
+		$notes           = (string) ( $values['notes'] ?? '' );
+		$attachment_path = (string) ( $values['attachment_path'] ?? '' );
 
 		echo '<div class="wrap"><h1>' . esc_html__( 'Asset', 'asset-registry' ) . '</h1>';
-		echo '<form method="post">';
+		echo '<form method="post" enctype="multipart/form-data">';
 		wp_nonce_field( self::NONCE_ACTION, self::NONCE_FIELD );
 		if ( $id > 0 ) {
 			echo '<input type="hidden" name="id" value="' . esc_attr( (string) $id ) . '" />';
@@ -245,6 +315,15 @@ final class AssetForm {
 
 		echo '<tr><th scope="row"><label for="notes">' . esc_html__( 'Notes', 'asset-registry' ) . '</label></th>';
 		echo '<td><textarea id="notes" name="notes" class="large-text" rows="4">' . esc_textarea( $notes ) . '</textarea></td></tr>';
+
+		echo '<tr><th scope="row"><label for="attachment">' . esc_html__( 'Attachment', 'asset-registry' ) . '</label></th>';
+		echo '<td><input type="file" id="attachment" name="attachment" />';
+		if ( $id > 0 && '' !== $attachment_path ) {
+			$download_url = ( new \AssetRegistry\Files\FileController() )->download_url( $id );
+			echo '<p><a href="' . esc_url( $download_url ) . '" target="_blank" rel="noopener">'
+				. esc_html( basename( $attachment_path ) ) . '</a></p>';
+		}
+		echo '</td></tr>';
 
 		echo '</tbody></table>';
 

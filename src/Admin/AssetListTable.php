@@ -161,6 +161,8 @@ final class AssetListTable extends \WP_List_Table {
 			self::DELETE_NONCE . '_' . $id
 		);
 
+		$pdf_url = ( new \AssetRegistry\Pdf\PdfRoute() )->download_url( $id );
+
 		$actions = array(
 			'edit'   => sprintf( '<a href="%s">%s</a>', esc_url( $edit_url ), esc_html__( 'Edit', 'asset-registry' ) ),
 			'delete' => sprintf(
@@ -168,6 +170,11 @@ final class AssetListTable extends \WP_List_Table {
 				esc_url( $delete_url ),
 				esc_js( __( 'Delete this asset?', 'asset-registry' ) ),
 				esc_html__( 'Delete', 'asset-registry' )
+			),
+			'pdf'    => sprintf(
+				'<a href="%s" target="_blank">%s</a>',
+				esc_url( $pdf_url ),
+				esc_html__( 'PDF', 'asset-registry' )
 			),
 		);
 
