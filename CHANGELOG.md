@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-06-15
+
+### Added
+- Admin asset management: a list screen with sortable columns, a status filter, full-text search, pagination, and row actions.
+- A validated, nonce-protected add/edit form with duplicate asset-tag detection and attachment upload, plus delete with confirmation.
+- Custom REST API namespace `asset-registry/v1` exposing `GET /assets` and `GET /assets/{id}` with pagination headers and server-side field visibility: anonymous requests receive only name, category, and status, while authorized viewers receive all fields.
+- Front-end `[asset_registry]` shortcode and a matching editor block rendering a responsive card grid with category and status filters, debounced search, and an accessible asset detail view.
+- Server-side PDF spec sheets generated on demand, served only behind a capability check and a per-asset nonce.
+- Secure attachment storage in a traversal-safe protected store served exclusively through an authenticated, capability-checked, nonce-guarded download route. The store is relocatable outside the web root via the `ASSET_REGISTRY_PROTECTED_DIR` constant or the `asset_registry_protected_dir` filter for servers that ignore `.htaccess`.
+- A tagged-release workflow that builds a distributable plugin ZIP and publishes it as a GitHub Release.
+
 ## [0.1.1] - 2026-06-14
 
 ### Fixed
