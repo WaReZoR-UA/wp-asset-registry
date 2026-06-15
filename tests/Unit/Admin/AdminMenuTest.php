@@ -37,6 +37,33 @@ final class AdminMenuTest extends UnitTestCase {
 		$this->assertSame( 'list', $menu->screen_for( array( 'action' => 'delete' ) ) );
 		$this->assertSame( 'list', $menu->screen_for( array() ) );
 	}
+
+	public function test_can_delete_allows_with_capability_and_valid_nonce(): void {
+		$menu = new AdminMenu();
+
+		Functions\when( 'current_user_can' )->justReturn( true );
+		Functions\when( 'wp_verify_nonce' )->justReturn( 1 );
+
+		$this->assertTrue( $menu->can_delete( 7, 'good-nonce' ) );
+	}
+
+	public function test_can_delete_denies_without_capability(): void {
+		$menu = new AdminMenu();
+
+		Functions\when( 'current_user_can' )->justReturn( false );
+		Functions\when( 'wp_verify_nonce' )->justReturn( 1 );
+
+		$this->assertFalse( $menu->can_delete( 7, 'good-nonce' ) );
+	}
+
+	public function test_can_delete_denies_with_bad_nonce(): void {
+		$menu = new AdminMenu();
+
+		Functions\when( 'current_user_can' )->justReturn( true );
+		Functions\when( 'wp_verify_nonce' )->justReturn( false );
+
+		$this->assertFalse( $menu->can_delete( 7, 'bad-nonce' ) );
+	}
 }
 
 /**

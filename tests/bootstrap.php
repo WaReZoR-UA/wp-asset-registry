@@ -20,6 +20,16 @@ if ( ! defined( 'ARRAY_A' ) ) {
     define( 'ARRAY_A', 'ARRAY_A' );
 }
 
+// Minimal stand-in for the WordPress WP_List_Table base class. Defining it
+// here satisfies AssetListTable's file-level class_exists() guard so the unit
+// suite never tries to require the real wp-admin include.
+if ( ! class_exists( 'WP_List_Table' ) ) {
+    // phpcs:ignore PEAR.NamingConventions.ValidClassName.Invalid -- mirrors WordPress class name.
+    class WP_List_Table {
+        public function __construct( $args = array() ) {}
+    }
+}
+
 // Minimal stand-in for the WordPress $wpdb object. Mockery can mock this
 // class to assert calls; tests that only read properties use it directly.
 if ( ! class_exists( 'wpdb' ) ) {
