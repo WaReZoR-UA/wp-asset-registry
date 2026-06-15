@@ -637,6 +637,11 @@
 	 */
 	App.prototype.openModal = function () {
 		var modal = this.modal;
+		// Idempotent: if already open, do not re-capture the padding (that would
+		// overwrite the saved original with the compensated value).
+		if ( modal.open ) {
+			return;
+		}
 		// Compensate for the scrollbar width BEFORE locking body scroll so the
 		// page content does not shift sideways when the scrollbar disappears.
 		var scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
