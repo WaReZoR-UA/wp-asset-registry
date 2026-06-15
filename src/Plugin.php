@@ -48,6 +48,8 @@ final class Plugin {
 		// logged-out requests, so it is wired unconditionally.
 		( new \AssetRegistry\Pdf\PdfRoute() )->register();
 
-		// Secure file hooks are wired in later phases.
+		// The gated file route registers admin-post hooks for both logged-in and
+		// logged-out requests, so it is wired unconditionally.
+		( new \AssetRegistry\Files\FileController() )->register();
 	}
 }
