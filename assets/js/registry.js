@@ -637,6 +637,13 @@
 	 */
 	App.prototype.openModal = function () {
 		var modal = this.modal;
+		// Compensate for the scrollbar width BEFORE locking body scroll so the
+		// page content does not shift sideways when the scrollbar disappears.
+		var scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+		this.previousBodyPaddingRight = document.body.style.paddingRight;
+		if ( scrollbarWidth > 0 ) {
+			document.body.style.paddingRight = scrollbarWidth + 'px';
+		}
 		modal.overlay.classList.add( 'is-open' );
 		modal.open = true;
 		document.body.classList.add( 'asset-registry-modal-open' );
@@ -656,6 +663,8 @@
 		this.modal.overlay.classList.remove( 'is-open' );
 		this.modal.open = false;
 		document.body.classList.remove( 'asset-registry-modal-open' );
+		// Restore the original right padding once the scrollbar returns.
+		document.body.style.paddingRight = this.previousBodyPaddingRight || '';
 		if ( this.lastFocused && typeof this.lastFocused.focus === 'function' ) {
 			this.lastFocused.focus();
 		}
