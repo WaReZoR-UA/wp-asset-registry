@@ -143,9 +143,9 @@ final class AssetListTable extends \WP_List_Table {
 		$id         = (int) $item->id;
 		$edit_url   = add_query_arg(
 			array(
-				'page'  => self::PAGE_SLUG,
-				'view'  => 'edit',
-				'asset' => $id,
+				'page'   => self::PAGE_SLUG,
+				'action' => 'edit',
+				'asset'  => $id,
 			),
 			admin_url( 'admin.php' )
 		);
