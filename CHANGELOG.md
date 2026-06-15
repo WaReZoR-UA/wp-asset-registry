@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.2] - 2026-06-15
+
+### Fixed
+- Front-end PDF and attachment download links did not work: the gated URLs were built with HTML-escaped ampersands (`&amp;`), which broke the query string once the link passed through the REST payload into the DOM, so the routes received no asset id and returned 403. Download URLs are now built raw and escaped only where rendered as HTML.
+
 ## [1.0.1] - 2026-06-15
 
 ### Fixed
