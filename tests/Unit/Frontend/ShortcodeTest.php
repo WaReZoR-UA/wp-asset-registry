@@ -53,10 +53,23 @@ final class ShortcodeTest extends UnitTestCase {
 		$this->assertFalse( $data['canView'] );
 	}
 
-	public function test_register_adds_the_asset_registry_shortcode(): void {
+	public function test_register_adds_the_asset_registry_shortcode_and_block(): void {
+		if ( ! defined( 'ASSET_REGISTRY_DIR' ) ) {
+			define( 'ASSET_REGISTRY_DIR', '/tmp/asset-registry/' );
+		}
+
 		Functions\expect( 'add_shortcode' )
 			->once()
 			->with( 'asset_registry', Mockery::type( 'array' ) );
+
+		Functions\expect( 'register_block_type' )
+			->once()
+			->with(
+				ASSET_REGISTRY_DIR . 'blocks/asset-registry',
+				Mockery::on(
+					static fn ( $args ): bool => is_array( $args ) && isset( $args['render_callback'] )
+				)
+			);
 
 		( new Shortcode() )->register();
 	}

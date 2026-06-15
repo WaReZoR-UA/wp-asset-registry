@@ -28,10 +28,19 @@ final class Shortcode {
 	public const HANDLE = 'asset-registry';
 
 	/**
-	 * Registers the shortcode. Hooked on init.
+	 * Registers the shortcode and the matching server-rendered block. Both
+	 * mount points reuse the same render(), so the block is a thin alias of
+	 * the shortcode. Hooked on init.
 	 */
 	public function register(): void {
 		add_shortcode( 'asset_registry', array( $this, 'render' ) );
+
+		if ( function_exists( 'register_block_type' ) ) {
+			register_block_type(
+				ASSET_REGISTRY_DIR . 'blocks/asset-registry',
+				array( 'render_callback' => array( $this, 'render' ) )
+			);
+		}
 	}
 
 	/**

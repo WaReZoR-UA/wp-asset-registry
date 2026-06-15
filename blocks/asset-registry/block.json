@@ -1,0 +1,16 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "asset-registry/grid",
+	"version": "1.0.0",
+	"title": "Asset Registry",
+	"category": "widgets",
+	"icon": "archive",
+	"description": "Displays the asset registry grid with filters, search, and detail views.",
+	"keywords": [ "asset", "registry", "equipment", "inventory" ],
+	"textdomain": "asset-registry",
+	"supports": {
+		"html": false,
+		"align": [ "wide", "full" ]
+	}
+}
