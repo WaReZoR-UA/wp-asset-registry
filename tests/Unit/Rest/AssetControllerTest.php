@@ -111,4 +111,31 @@ final class AssetControllerTest extends UnitTestCase {
 
 		$this->assertArrayNotHasKey( 'attachment_path', $item );
 	}
+
+	public function test_list_clamps_per_page_to_repository_cap_for_total_pages(): void {
+		Functions\when( 'current_user_can' )->justReturn( false );
+
+		$repository = Mockery::mock( AssetRepository::class );
+		$repository->shouldReceive( 'query' )
+			->once()
+			->with( array(), 'created_at', 'desc', 100, 1 )
+			->andReturn( array( $this->sample_asset() ) );
+		$repository->shouldReceive( 'count' )
+			->once()
+			->with( array() )
+			->andReturn( 250 );
+
+		$controller = new AssetController( $repository );
+
+		$request = new \WP_REST_Request();
+		$request->set_param( 'per_page', 9999 );
+		$request->set_param( 'page', 1 );
+
+		$response = $controller->get_items( $request );
+		$headers  = $response->get_headers();
+
+		$this->assertSame( '250', $headers['X-WP-Total'] );
+		// ceil( 250 / 100 ) = 3, not ceil( 250 / 9999 ) = 1.
+		$this->assertSame( '3', $headers['X-WP-TotalPages'] );
+	}
 }

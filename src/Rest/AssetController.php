@@ -32,6 +32,12 @@ final class AssetController {
 	private const DEFAULT_PER_PAGE = 12;
 
 	/**
+	 * Hard upper bound on rows per list page, mirroring the repository's
+	 * internal clamp so pagination headers stay consistent with the data.
+	 */
+	private const MAX_PER_PAGE = 100;
+
+	/**
 	 * Stores the optional repository dependency.
 	 *
 	 * @param AssetRepository|null $repository Injected for testing; built lazily otherwise.
@@ -114,11 +120,14 @@ final class AssetController {
 			'page'     => array(
 				'type'              => 'integer',
 				'default'           => 1,
+				'minimum'           => 1,
 				'sanitize_callback' => 'absint',
 			),
 			'per_page' => array(
 				'type'              => 'integer',
 				'default'           => self::DEFAULT_PER_PAGE,
+				'minimum'           => 1,
+				'maximum'           => self::MAX_PER_PAGE,
 				'sanitize_callback' => 'absint',
 			),
 		);
@@ -133,7 +142,6 @@ final class AssetController {
 	 */
 	public function prepare_item( Asset $asset, bool $can_view ): array {
 		$row = array(
-			'id'              => $asset->id,
 			'asset_tag'       => $asset->asset_tag,
 			'name'            => $asset->name,
 			'category'        => $asset->category,
@@ -166,8 +174,7 @@ final class AssetController {
 		}
 
 		$page     = max( 1, (int) $request->get_param( 'page' ) );
-		$per_page = (int) $request->get_param( 'per_page' );
-		$per_page = $per_page > 0 ? $per_page : self::DEFAULT_PER_PAGE;
+		$per_page = min( self::MAX_PER_PAGE, max( 1, (int) $request->get_param( 'per_page' ) ) );
 
 		$can_view = current_user_can( Capabilities::VIEW );
 
@@ -197,7 +204,7 @@ final class AssetController {
 		$asset = $this->repository()->find( $id );
 
 		if ( ! $asset instanceof Asset ) {
-			return new \WP_Error( 'asset_not_found', 'Asset not found.', array( 'status' => 404 ) );
+			return new \WP_Error( 'asset_not_found', __( 'Asset not found.', 'asset-registry' ), array( 'status' => 404 ) );
 		}
 
 		return new \WP_REST_Response( $this->prepare_item( $asset, current_user_can( Capabilities::VIEW ) ) );
