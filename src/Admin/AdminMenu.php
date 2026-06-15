@@ -46,9 +46,12 @@ final class AdminMenu {
 
 	/**
 	 * Registers the top-level menu. Hooked on admin_menu.
+	 *
+	 * The destructive delete action is handled on the screen's load-{hook}
+	 * action, which fires before any admin output, so wp_safe_redirect() works.
 	 */
 	public function register(): void {
-		add_menu_page(
+		$hook = add_menu_page(
 			'Asset Registry',
 			'Asset Registry',
 			Capabilities::MANAGE,
@@ -57,6 +60,37 @@ final class AdminMenu {
 			'dashicons-archive',
 			56
 		);
+
+		add_action( "load-{$hook}", array( $this, 'handle_load' ) );
+	}
+
+	/**
+	 * Processes the delete action before any admin output is sent.
+	 *
+	 * Hooked on load-{hook} so wp_safe_redirect() + exit run cleanly. On a
+	 * normal page load (no delete action) this is a no-op and rendering
+	 * proceeds via render().
+	 */
+	public function handle_load(): void {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only screen routing; mutations are nonce-checked in AssetForm and can_delete().
+		$action = sanitize_key( wp_unslash( $_GET['action'] ?? '' ) );
+
+		if ( 'delete' !== $action ) {
+			return;
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only id read; verified immediately by can_delete().
+		$id = isset( $_GET['asset'] ) ? absint( wp_unslash( $_GET['asset'] ) ) : 0;
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- the nonce token is read here and verified immediately by can_delete().
+		$nonce = isset( $_GET['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ) : null;
+
+		if ( $id > 0 && $this->can_delete( $id, $nonce ) ) {
+			$this->repository()->delete( $id );
+			wp_safe_redirect( admin_url( 'admin.php?page=' . self::SLUG . '&deleted=1' ) );
+			exit;
+		}
+
+		wp_die( esc_html__( 'Security check failed.', 'asset-registry' ) );
 	}
 
 	/**
@@ -93,21 +127,6 @@ final class AdminMenu {
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only screen routing; mutations are nonce-checked in AssetForm and can_delete().
 		$action = isset( $_GET['action'] ) ? sanitize_key( wp_unslash( $_GET['action'] ) ) : '';
-
-		if ( 'delete' === $action ) {
-			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only id read; verified immediately by can_delete().
-			$id = isset( $_GET['asset'] ) ? absint( wp_unslash( $_GET['asset'] ) ) : 0;
-			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- the nonce token is read here and verified immediately by can_delete().
-			$nonce = isset( $_GET['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ) : null;
-
-			if ( $id > 0 && $this->can_delete( $id, $nonce ) ) {
-				$this->repository()->delete( $id );
-				wp_safe_redirect( admin_url( 'admin.php?page=' . self::SLUG . '&deleted=1' ) );
-				exit;
-			}
-
-			wp_die( esc_html__( 'Security check failed.', 'asset-registry' ) );
-		}
 
 		if ( 'form' === $this->screen_for( array( 'action' => $action ) ) ) {
 			$this->form->render();

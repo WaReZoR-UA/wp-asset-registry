@@ -10,6 +10,7 @@ namespace AssetRegistry\Tests\Unit\Admin;
 use AssetRegistry\Admin\AdminMenu;
 use AssetRegistry\Tests\Unit\UnitTestCase;
 use Brain\Monkey\Functions;
+use Mockery;
 
 final class AdminMenuTest extends UnitTestCase {
 
@@ -24,7 +25,20 @@ final class AdminMenuTest extends UnitTestCase {
 				Mockery_any(),
 				'dashicons-archive',
 				56
-			);
+			)
+			->andReturn( 'toplevel_page_asset-registry' );
+		Functions\when( 'add_action' )->justReturn( true );
+
+		( new AdminMenu() )->register();
+	}
+
+	public function test_register_wires_load_hook_to_the_returned_suffix(): void {
+		Functions\expect( 'add_menu_page' )
+			->once()
+			->andReturn( 'toplevel_page_asset-registry' );
+		Functions\expect( 'add_action' )
+			->once()
+			->with( 'load-toplevel_page_asset-registry', Mockery::type( 'array' ) );
 
 		( new AdminMenu() )->register();
 	}
