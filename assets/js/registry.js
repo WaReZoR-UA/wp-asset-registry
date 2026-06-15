@@ -27,8 +27,8 @@
 		return {
 			restUrl: typeof raw.restUrl === 'string' ? raw.restUrl : '',
 			nonce: typeof raw.nonce === 'string' ? raw.nonce : '',
-			canView: raw.canView === true,
-			perPage: Number.isFinite( raw.perPage ) && raw.perPage > 0 ? Math.floor( raw.perPage ) : 12,
+			canView: raw.canView === true || raw.canView === '1' || raw.canView === 1,
+			perPage: ( Number( raw.perPage ) > 0 ) ? Math.floor( Number( raw.perPage ) ) : 12,
 			statuses: ( raw.statuses && typeof raw.statuses === 'object' ) ? raw.statuses : {},
 			categories: ( raw.categories && typeof raw.categories === 'object' ) ? raw.categories : {},
 			i18n: {
