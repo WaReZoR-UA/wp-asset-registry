@@ -3,7 +3,7 @@
  * Plugin Name:       Asset Registry
  * Plugin URI:        https://github.com/WaReZoR-UA/wp-asset-registry
  * Description:       Asset / Equipment Registry: custom tables, role-based access, a responsive front-end grid with filters and search, server-side PDF spec sheets, and secure authenticated attachments.
- * Version:           0.1.1
+ * Version:           1.0.0
  * Requires at least: 6.4
  * Requires PHP:      8.1
  * Author:            Volodymyr O.

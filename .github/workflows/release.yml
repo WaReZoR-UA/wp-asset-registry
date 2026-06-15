@@ -1,0 +1,46 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    name: Build and publish release ZIP
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          coverage: none
+          tools: composer
+
+      - name: Install runtime dependencies
+        run: composer install --no-dev --optimize-autoloader --no-interaction
+
+      - name: Build distributable ZIP
+        run: |
+          mkdir -p build/asset-registry
+          rsync -a \
+            asset-registry.php \
+            uninstall.php \
+            src \
+            assets \
+            blocks \
+            vendor \
+            README.md \
+            CHANGELOG.md \
+            composer.json \
+            build/asset-registry/
+          cd build
+          zip -r "../asset-registry-${GITHUB_REF_NAME}.zip" asset-registry
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: asset-registry-${{ github.ref_name }}.zip

@@ -11,11 +11,11 @@ namespace AssetRegistry;
 
 /**
  * Plugin orchestrator. Holds the canonical version and boots the plugin.
- * Feature hooks (admin, REST, frontend, PDF, files) are wired in later phases.
+ * Feature hooks (admin, REST, frontend, PDF, files) are wired here.
  */
 final class Plugin {
 
-	public const VERSION = '0.1.1';
+	public const VERSION = '1.0.0';
 
 	/**
 	 * Boots the plugin: loads translations and wires runtime hooks.
