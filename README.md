@@ -17,7 +17,23 @@ The front page is the live asset grid. A demo bar offers one-click sign-in as ei
 
 A logged-out visitor sees the public preview, which exposes only an asset's name, category, and status. The sample data resets daily, so the demo can be explored freely.
 
-<!-- TODO: add screenshots -->
+## Screenshots
+
+**Front-end asset grid** - responsive cards with category/status filters, search, and pagination.
+
+![Front-end asset grid](.github/screenshots/frontend-grid.png)
+
+**Asset detail** - the detail dialog with gated PDF and attachment downloads for authorized viewers.
+
+![Asset detail dialog](.github/screenshots/frontend-detail.png)
+
+**Admin list** - the `WP_List_Table` with sortable columns, a status filter, search, pagination, and row actions.
+
+![Admin asset list](.github/screenshots/admin-list.png)
+
+**Admin add/edit form** - validated, nonce-protected fields with attachment upload.
+
+![Admin add/edit form](.github/screenshots/admin-form.png)
 
 ## Features
 
