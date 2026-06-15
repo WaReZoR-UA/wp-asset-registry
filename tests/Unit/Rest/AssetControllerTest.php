@@ -43,6 +43,40 @@ final class AssetControllerTest extends UnitTestCase {
 		);
 	}
 
+	/**
+	 * The sample asset without a stored attachment.
+	 *
+	 * @return Asset The sample asset with an empty attachment path.
+	 */
+	private function sample_asset_without_attachment(): Asset {
+		return Asset::from_array(
+			array(
+				'id'              => 7,
+				'asset_tag'       => 'MON-3',
+				'name'            => 'Dell UltraSharp',
+				'category'        => 'monitor',
+				'status'          => 'active',
+				'location'        => 'HQ',
+				'assigned_to'     => 'John Doe',
+				'purchase_date'   => '2024-03-10',
+				'value'           => 350.00,
+				'notes'           => '',
+				'attachment_path' => '',
+				'created_at'      => '2024-03-10 10:00:00',
+				'updated_at'      => '2024-03-10 10:00:00',
+			)
+		);
+	}
+
+	/**
+	 * Stubs the WordPress URL helpers used to build gated download links so the
+	 * resulting URL is deterministic and assertable.
+	 */
+	private function stub_download_url_helpers(): void {
+		Functions\when( 'admin_url' )->alias( static fn ( $path ) => 'https://example.test/wp-admin/' . $path );
+		Functions\when( 'wp_nonce_url' )->alias( static fn ( $url, $action ) => $url . '&_wpnonce=' . $action );
+	}
+
 	public function test_registers_list_and_single_routes_under_namespace(): void {
 		$routes = array();
 		Functions\expect( 'register_rest_route' )
@@ -95,9 +129,13 @@ final class AssetControllerTest extends UnitTestCase {
 		$this->assertArrayNotHasKey( 'value', $item );
 		$this->assertArrayNotHasKey( 'notes', $item );
 		$this->assertArrayNotHasKey( 'attachment_path', $item );
+		$this->assertArrayNotHasKey( 'pdf_url', $item );
+		$this->assertArrayNotHasKey( 'file_url', $item );
 	}
 
 	public function test_single_response_includes_sensitive_fields_for_authorized_viewer(): void {
+		$this->stub_download_url_helpers();
+
 		$controller = new AssetController( Mockery::mock( AssetRepository::class ) );
 
 		$item = $controller->prepare_item( $this->sample_asset(), true );
@@ -110,6 +148,38 @@ final class AssetControllerTest extends UnitTestCase {
 		$this->assertTrue( $item['has_attachment'] );
 
 		$this->assertArrayNotHasKey( 'attachment_path', $item );
+
+		$this->assertArrayHasKey( 'pdf_url', $item );
+		$this->assertStringContainsString( 'action=asset_registry_pdf', $item['pdf_url'] );
+		$this->assertStringContainsString( 'asset=42', $item['pdf_url'] );
+
+		$this->assertArrayHasKey( 'file_url', $item );
+		$this->assertStringContainsString( 'action=asset_registry_file', $item['file_url'] );
+		$this->assertStringContainsString( 'asset=42', $item['file_url'] );
+	}
+
+	public function test_authorized_item_omits_file_url_when_no_attachment(): void {
+		$this->stub_download_url_helpers();
+
+		$controller = new AssetController( Mockery::mock( AssetRepository::class ) );
+
+		$item = $controller->prepare_item( $this->sample_asset_without_attachment(), true );
+
+		$this->assertFalse( $item['has_attachment'] );
+		$this->assertArrayHasKey( 'pdf_url', $item );
+		$this->assertArrayNotHasKey( 'file_url', $item );
+	}
+
+	public function test_anonymous_item_carries_no_download_urls_and_makes_no_wp_calls(): void {
+		// No WP stubs are registered here: the anonymous path must not call any
+		// WordPress function. Brain Monkey turns undefined function calls into
+		// errors, so this test fails if the anon branch reaches admin_url/nonce.
+		$controller = new AssetController( Mockery::mock( AssetRepository::class ) );
+
+		$item = $controller->prepare_item( $this->sample_asset(), false );
+
+		$this->assertArrayNotHasKey( 'pdf_url', $item );
+		$this->assertArrayNotHasKey( 'file_url', $item );
 	}
 
 	public function test_list_clamps_per_page_to_repository_cap_for_total_pages(): void {

@@ -39,6 +39,8 @@
 				loading: i18n.loading || 'Loading...',
 				details: i18n.details || 'Details',
 				restricted: i18n.restricted || 'Sign in to view full asset details.',
+				downloadPdf: i18n.downloadPdf || 'Download PDF',
+				downloadFile: i18n.downloadFile || 'Download attachment',
 				error: i18n.error || 'Something went wrong. Please try again.',
 				close: i18n.close || 'Close',
 				prev: i18n.prev || 'Previous',
@@ -764,10 +766,21 @@
 
 		modal.body.appendChild( dl );
 
-		if ( item.has_attachment === true ) {
-			modal.body.appendChild(
-				el( 'p', 'asset-registry-modal__attachment', 'Attachment available' )
-			);
+		// Gated download links, present only for authorized viewers whose payload
+		// carries the per-asset nonced URLs. Built via createElement and
+		// setAttribute so untrusted URLs are never parsed as markup.
+		var actions = el( 'div', 'asset-registry-modal__actions' );
+
+		if ( typeof item.pdf_url === 'string' && item.pdf_url !== '' ) {
+			actions.appendChild( this.downloadLink( item.pdf_url, this.i18n.downloadPdf ) );
+		}
+
+		if ( typeof item.file_url === 'string' && item.file_url !== '' ) {
+			actions.appendChild( this.downloadLink( item.file_url, this.i18n.downloadFile ) );
+		}
+
+		if ( actions.childNodes.length > 0 ) {
+			modal.body.appendChild( actions );
 		}
 
 		// Anonymous detail carries only name/category/status: show the notice.
@@ -775,6 +788,22 @@
 			var note = el( 'p', 'asset-registry-modal__restricted', this.i18n.restricted );
 			modal.body.appendChild( note );
 		}
+	};
+
+	/**
+	 * Builds a safe download anchor that opens in a new tab without leaking the
+	 * opener. The URL is applied via setAttribute and the label via textContent.
+	 *
+	 * @param {string} url   The download URL.
+	 * @param {string} text  The link label.
+	 * @return {HTMLAnchorElement} The configured anchor.
+	 */
+	App.prototype.downloadLink = function ( url, text ) {
+		var link = el( 'a', 'asset-registry-modal__action', text );
+		link.setAttribute( 'href', url );
+		link.setAttribute( 'target', '_blank' );
+		link.setAttribute( 'rel', 'noopener' );
+		return link;
 	};
 
 	/**

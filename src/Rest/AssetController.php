@@ -134,7 +134,9 @@ final class AssetController {
 	}
 
 	/**
-	 * Builds the REST payload for one asset, filtered by capability. Pure.
+	 * Builds the REST payload for one asset, filtered by capability. Pure for
+	 * the anonymous path (no WordPress calls); authorized items additionally
+	 * carry gated download URLs the front end can offer.
 	 *
 	 * @param Asset $asset    The source asset.
 	 * @param bool  $can_view Whether the caller holds the view capability.
@@ -154,7 +156,22 @@ final class AssetController {
 			'attachment_path' => $asset->attachment_path,
 		);
 
-		return array_merge( array( 'id' => (int) $asset->id ), FieldVisibility::filter( $row, $can_view ) );
+		$item = array_merge( array( 'id' => (int) $asset->id ), FieldVisibility::filter( $row, $can_view ) );
+
+		// Anonymous callers receive no download URLs, and this branch makes no
+		// WordPress calls so it stays pure and fast.
+		if ( ! $can_view ) {
+			return $item;
+		}
+
+		$id              = (int) $asset->id;
+		$item['pdf_url'] = ( new \AssetRegistry\Pdf\PdfRoute() )->download_url( $id );
+
+		if ( ! empty( $asset->attachment_path ) ) {
+			$item['file_url'] = ( new \AssetRegistry\Files\FileController() )->download_url( $id );
+		}
+
+		return $item;
 	}
 
 	/**
