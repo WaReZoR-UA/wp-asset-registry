@@ -44,6 +44,10 @@ final class Plugin {
 			}
 		);
 
-		// PDF and secure file hooks are wired in later phases.
+		// The gated PDF route registers admin-post hooks for both logged-in and
+		// logged-out requests, so it is wired unconditionally.
+		( new \AssetRegistry\Pdf\PdfRoute() )->register();
+
+		// Secure file hooks are wired in later phases.
 	}
 }
