@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.3] - 2026-06-15
+
+### Fixed
+- Attachment downloads now send `Content-Disposition: attachment` so the "Download attachment" action saves the file instead of opening it inline in the browser tab.
+
 ## [1.0.2] - 2026-06-15
 
 ### Fixed
