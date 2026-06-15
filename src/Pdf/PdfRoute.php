@@ -73,9 +73,16 @@ final class PdfRoute {
 	 * @return string The admin-post URL carrying the per-id nonce.
 	 */
 	public function download_url( int $id ): string {
-		return wp_nonce_url(
-			admin_url( 'admin-post.php?action=' . self::ACTION . '&asset=' . $id ),
-			self::NONCE_ACTION . '_' . $id
+		// add_query_arg returns a raw URL with literal "&" separators (not the
+		// HTML-escaped "&amp;" wp_nonce_url produces), so the link survives a
+		// trip through JSON/JS (setAttribute); HTML consumers escape via esc_url.
+		return add_query_arg(
+			array(
+				'action'   => self::ACTION,
+				'asset'    => $id,
+				'_wpnonce' => wp_create_nonce( self::NONCE_ACTION . '_' . $id ),
+			),
+			admin_url( 'admin-post.php' )
 		);
 	}
 

@@ -52,12 +52,15 @@ final class PdfRouteTest extends UnitTestCase {
 
 	public function test_download_url_includes_action_asset_and_nonce(): void {
 		Functions\when( 'admin_url' )->alias( static fn ( $path ) => 'https://example.test/wp-admin/' . $path );
-		Functions\when( 'wp_nonce_url' )->alias( static fn ( $url, $action ) => $url . '&_wpnonce=' . $action );
+		Functions\when( 'wp_create_nonce' )->alias( static fn ( $action ) => $action );
+		Functions\when( 'add_query_arg' )->alias( static fn ( $args, $url ) => $url . '?' . http_build_query( $args ) );
 
 		$url = ( new PdfRoute() )->download_url( 7 );
 
 		$this->assertStringContainsString( 'action=asset_registry_pdf', $url );
 		$this->assertStringContainsString( 'asset=7', $url );
 		$this->assertStringContainsString( 'asset_registry_pdf_7', $url );
+		// Raw URL with literal "&" so it survives JSON/JS without breaking the query string.
+		$this->assertStringNotContainsString( '&amp;', $url );
 	}
 }
