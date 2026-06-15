@@ -74,7 +74,8 @@ final class AssetControllerTest extends UnitTestCase {
 	 */
 	private function stub_download_url_helpers(): void {
 		Functions\when( 'admin_url' )->alias( static fn ( $path ) => 'https://example.test/wp-admin/' . $path );
-		Functions\when( 'wp_nonce_url' )->alias( static fn ( $url, $action ) => $url . '&_wpnonce=' . $action );
+		Functions\when( 'wp_create_nonce' )->alias( static fn ( $action ) => $action );
+		Functions\when( 'add_query_arg' )->alias( static fn ( $args, $url ) => $url . '?' . http_build_query( $args ) );
 	}
 
 	public function test_registers_list_and_single_routes_under_namespace(): void {
