@@ -51,13 +51,28 @@ final class Shortcode {
 	 * @return string The root container markup the script mounts into.
 	 */
 	public function render( $atts = array() ): string { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found -- $atts is part of the WordPress shortcode callback signature.
-		wp_enqueue_style( self::HANDLE, ASSET_REGISTRY_URL . 'assets/css/registry.css', array(), Plugin::VERSION );
-		wp_enqueue_script( self::HANDLE, ASSET_REGISTRY_URL . 'assets/js/registry.js', array(), Plugin::VERSION, true );
+		wp_enqueue_style( self::HANDLE, ASSET_REGISTRY_URL . 'assets/css/registry.css', array(), $this->asset_version( 'assets/css/registry.css' ) );
+		wp_enqueue_script( self::HANDLE, ASSET_REGISTRY_URL . 'assets/js/registry.js', array(), $this->asset_version( 'assets/js/registry.js' ), true );
 		wp_localize_script( self::HANDLE, 'AssetRegistryData', $this->localized_data() );
 
 		return '<div class="asset-registry" id="asset-registry-app"><noscript>'
 			. esc_html__( 'Enable JavaScript to browse the asset registry.', 'asset-registry' )
 			. '</noscript></div>';
+	}
+
+	/**
+	 * Cache-busting version for a bundled asset, based on its modification
+	 * time so any edit invalidates the browser cache. Falls back to the
+	 * plugin version when the file cannot be read.
+	 *
+	 * @param string $relative Asset path relative to the plugin directory.
+	 * @return string The version string.
+	 */
+	private function asset_version( string $relative ): string {
+		$path  = ASSET_REGISTRY_DIR . $relative;
+		$mtime = is_readable( $path ) ? filemtime( $path ) : false;
+
+		return false !== $mtime ? (string) $mtime : Plugin::VERSION;
 	}
 
 	/**
