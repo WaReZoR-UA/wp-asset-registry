@@ -17,8 +17,10 @@ namespace AssetRegistry\Files;
  * The path-building seams (relative_path, resolve) are pure and unit-tested;
  * the filesystem methods (ensure_protected, store, delete) are thin wrappers
  * verified by manual/integration testing.
+ *
+ * Not declared final so the store can be mocked in unit tests of its callers.
  */
-final class AttachmentStore {
+class AttachmentStore {
 
 	/**
 	 * Name of the protected subdirectory inside the uploads basedir.

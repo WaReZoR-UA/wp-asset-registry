@@ -10,6 +10,7 @@ namespace AssetRegistry\Tests\Unit\Admin;
 use AssetRegistry\Admin\AssetForm;
 use AssetRegistry\Asset;
 use AssetRegistry\AssetRepository;
+use AssetRegistry\Files\AttachmentStore;
 use AssetRegistry\Tests\Unit\UnitTestCase;
 use Brain\Monkey\Functions;
 use Mockery;
@@ -393,6 +394,106 @@ final class AssetFormTest extends UnitTestCase {
 			array(
 				'saved' => false,
 				'id'    => 0,
+				'error' => '',
+			),
+			$result
+		);
+	}
+
+	public function test_process_upload_stores_valid_file_and_returns_path(): void {
+		$repo  = Mockery::mock( AssetRepository::class );
+		$store = Mockery::mock( AttachmentStore::class );
+		$store->shouldReceive( 'store' )
+			->once()
+			->with( Mockery::type( 'array' ), 55 )
+			->andReturn( '55-tok-photo.png' );
+
+		$form = new AssetForm( $repo, $store );
+
+		$result = $form->process_upload(
+			55,
+			array(
+				'attachment' => array(
+					'error'    => 0,
+					'size'     => 1234,
+					'name'     => 'photo.png',
+					'tmp_name' => '/tmp/x',
+				),
+			)
+		);
+
+		$this->assertSame( '55-tok-photo.png', $result );
+	}
+
+	public function test_process_upload_returns_null_when_no_file(): void {
+		$repo  = Mockery::mock( AssetRepository::class );
+		$store = Mockery::mock( AttachmentStore::class );
+		$store->shouldReceive( 'store' )->never();
+
+		$form = new AssetForm( $repo, $store );
+
+		$this->assertNull( $form->process_upload( 55, array() ) );
+		$this->assertNull(
+			$form->process_upload(
+				55,
+				array(
+					'attachment' => array(
+						'error'    => UPLOAD_ERR_NO_FILE,
+						'size'     => 0,
+						'name'     => '',
+						'tmp_name' => '',
+					),
+				)
+			)
+		);
+	}
+
+	public function test_handle_persists_attachment_path_from_store(): void {
+		$repo = Mockery::mock( AssetRepository::class );
+		$repo->shouldReceive( 'find_by_tag' )->once()->with( 'LAP-9' )->andReturn( null );
+		$repo->shouldReceive( 'insert' )->once()->with( Mockery::type( Asset::class ) )->andReturn( 101 );
+		$repo->shouldReceive( 'update' )
+			->once()
+			->with(
+				101,
+				Mockery::on(
+					static fn ( $asset ): bool => $asset instanceof Asset && 'p' === $asset->attachment_path
+				)
+			)
+			->andReturn( true );
+
+		$store = Mockery::mock( AttachmentStore::class );
+		$store->shouldReceive( 'store' )
+			->once()
+			->with( Mockery::type( 'array' ), 101 )
+			->andReturn( 'p' );
+
+		$form = new AssetForm( $repo, $store );
+		Functions\when( 'current_user_can' )->justReturn( true );
+		Functions\when( 'wp_verify_nonce' )->justReturn( 1 );
+
+		$result = $form->handle(
+			array(
+				'asset_tag' => 'LAP-9',
+				'name'      => 'X1',
+				'category'  => 'laptop',
+				'status'    => 'active',
+			),
+			'good-nonce',
+			array(
+				'attachment' => array(
+					'error'    => 0,
+					'size'     => 1234,
+					'name'     => 'photo.png',
+					'tmp_name' => '/tmp/x',
+				),
+			)
+		);
+
+		$this->assertSame(
+			array(
+				'saved' => true,
+				'id'    => 101,
 				'error' => '',
 			),
 			$result
