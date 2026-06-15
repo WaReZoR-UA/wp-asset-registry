@@ -4,10 +4,12 @@
  * Mobile-first and framework-free. Every selector is scoped under
  * .asset-registry (or the namespaced .asset-registry-modal) so the plugin
  * styling cannot leak into the host theme. Colors come from custom properties
- * to keep the palette in one place.
+ * to keep the palette in one place. The modal is appended to <body> (outside
+ * the .asset-registry container), so the palette is declared on both scopes.
  */
 
-.asset-registry {
+.asset-registry,
+.asset-registry-modal {
 	--ar-bg: #ffffff;
 	--ar-surface: #ffffff;
 	--ar-surface-alt: #f7f8fa;
